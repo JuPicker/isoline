@@ -97,10 +97,29 @@
   var r2 = function (n) { return Math.round(n * 100) / 100; };
   var ss = function (a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
   var dist = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
-  /** Two #rrggbb colours mixed, t of the first. */
+  /**
+   * A colour as [r, g, b]: #rgb, #rgba, #rrggbb, #rrggbbaa, rgb() and rgba(). Anything else
+   * (a name, hsl()…) is resolved by the browser. CSS minifiers turn #ffffff into #fff, so the
+   * short forms must read right.
+   */
+  var _cx = null;
+  function rgbOf(c) {
+    var s = String(c || "").trim(), m;
+    if (!/^(#|rgb)/i.test(s) && typeof document !== "undefined") {
+      try { _cx = _cx || document.createElement("canvas").getContext("2d"); _cx.fillStyle = "#000"; _cx.fillStyle = s; s = String(_cx.fillStyle); } catch (e) { /* keep s */ }
+    }
+    if (s.charAt(0) === "#") {
+      var h = s.slice(1);
+      if (h.length === 3 || h.length === 4) h = h.replace(/./g, "$&$&");
+      return [0, 1, 2].map(function (i) { return parseInt(h.slice(i * 2, i * 2 + 2), 16) || 0; });
+    }
+    if ((m = s.match(/rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i))) return [+m[1], +m[2], +m[3]];
+    return [0, 0, 0];
+  }
+  /** Two colours mixed, t of the first, as #rrggbb. */
   function mixHex(a, b, t) {
-    var p = function (h, i) { return parseInt(String(h).slice(1 + i * 2, 3 + i * 2), 16) || 0; }, out = "#";
-    for (var i = 0; i < 3; i++) out += ("0" + Math.round(p(a, i) * t + p(b, i) * (1 - t)).toString(16)).slice(-2);
+    var A = rgbOf(a), B = rgbOf(b), out = "#";
+    for (var i = 0; i < 3; i++) out += ("0" + Math.round(A[i] * t + B[i] * (1 - t)).toString(16)).slice(-2);
     return out;
   }
   /** The shaded side of an accent: the accent, a third of the way to the ground. */
