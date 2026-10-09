@@ -1,0 +1,15 @@
+{
+  "name": "isoline",
+  "version": "1.0.0",
+  "description": "Tiny isometric worlds drawn in hairlines: animated scenes that answer the pointer. Vanilla JS, no dependency.",
+  "main": "isoline.js",
+  "types": "isoline.d.ts",
+  "unpkg": "isoline.min.js",
+  "jsdelivr": "isoline.min.js",
+  "files": ["isoline.js", "isoline.min.js", "isoline.d.ts", "LICENSE", "README.md"],
+  "keywords": ["isometric", "illustration", "animation", "svg", "line-art", "blueprint", "exploded-view", "vanilla-js"],
+  "author": "Julien Picker (https://picker.studio)",
+  "homepage": "https://picker.studio/tools/isoline",
+  "repository": { "type": "git", "url": "git+https://github.com/JuPicker/isoline.git" },
+  "license": "MIT"
+}

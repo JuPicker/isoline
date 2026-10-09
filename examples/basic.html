@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Isoline · basic</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #08090a; }
+    #isoline { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="isoline"></div>
+  <script src="../isoline.min.js"></script>
+  <script>
+    var iso = new Isoline(document.getElementById("isoline"), {
+      scene: "keyboard",
+      azimuth: 30,
+      elevation: 36,
+      accent: "#ff6a3d",
+      floor: "grid",
+      floorStrength: 0.5,
+    });
+    // change anything later: iso.set({ scene: "city", solidAccent: false });
+  </script>
+</body>
+</html>

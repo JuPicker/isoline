@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Isoline · every scene</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #08090a; font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; color: #d0d6e0; }
+    #isoline { position: fixed; inset: 0; }
+    nav { position: fixed; left: 16px; right: 16px; bottom: 16px; display: flex; flex-wrap: wrap; gap: 6px; }
+    button { font: inherit; color: inherit; background: rgba(20, 20, 24, 0.85); border: 1px solid #2a2a30; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+    button[aria-pressed="true"] { background: #d0d6e0; color: #08090a; }
+    .gap { width: 12px; }
+  </style>
+</head>
+<body>
+  <div id="isoline"></div>
+  <nav id="scenes"></nav>
+  <script src="../isoline.js"></script>
+  <script>
+    var PALETTES = {
+      Ink: { plate: "#08090a", hi: "#d0d6e0", edge: "#5b5d64", mid: "#3e3e44", lo: "#29292d", accent: "#d0d6e0" },
+      Signal: { plate: "#08090a", hi: "#d0d6e0", edge: "#5b5d64", mid: "#3e3e44", lo: "#29292d", accent: "#ff6a3d" },
+      Paper: { plate: "#ffffff", hi: "#232327", edge: "#a4a4ac", mid: "#c3c3c9", lo: "#e0e0e4", accent: "#2f5bff" },
+      Blueprint: { plate: "#0b2a5b", hi: "#f2f6ff", edge: "#8fb0e6", mid: "#4a6fa8", lo: "#25467c", accent: "#ffd166" },
+    };
+    // each scene with the camera that suits it
+    var CAMERAS = {
+      city: [45, 30], supply: [32, 32], flight: [38, 34], delivery: [30, 34], port: [32, 32], line: [32, 34],
+      product: [-35, 30], steamer: [-28, 32], cabinet: [28, 24], lockers: [30, 22], keyboard: [30, 36],
+      interface: [-32, 38], relief: [-24, 36], word: [-30, 30],
+    };
+    var root = document.getElementById("isoline");
+    var iso = new Isoline(root, Object.assign({ scene: "city", floor: "grid", floorStrength: 0.4 }, PALETTES.Signal));
+    var nav = document.getElementById("scenes");
+
+    function button(label, pressed, onClick) {
+      var b = document.createElement("button");
+      b.textContent = label;
+      b.setAttribute("aria-pressed", String(pressed));
+      b.onclick = function () {
+        b.parentNode.querySelectorAll("button[data-group='" + b.dataset.group + "']").forEach(function (o) { o.setAttribute("aria-pressed", "false"); });
+        b.setAttribute("aria-pressed", "true");
+        onClick();
+      };
+      nav.appendChild(b);
+      return b;
+    }
+
+    Isoline.SCENES.forEach(function (name) {
+      var cam = CAMERAS[name] || [45, 30];
+      button(name, name === "city", function () {
+        iso.set({ scene: name, azimuth: cam[0], elevation: cam[1] });
+      }).dataset.group = "scene";
+    });
+    nav.appendChild(Object.assign(document.createElement("span"), { className: "gap" }));
+    Object.keys(PALETTES).forEach(function (name) {
+      button(name, name === "Signal", function () {
+        iso.set(PALETTES[name]);
+        document.body.style.background = PALETTES[name].plate;
+      }).dataset.group = "palette";
+    });
+  </script>
+</body>
+</html>

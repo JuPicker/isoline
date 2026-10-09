@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Isoline · your own scene</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #08090a; }
+    #isoline { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="isoline"></div>
+  <script src="../isoline.js"></script>
+  <script>
+    // A row of server racks, their lights blinking. The rack under the pointer lights up.
+    Isoline.defineScene("racks", {
+      describe: "a row of server racks, their lights blinking",
+      labels: ["Rack"],
+
+      // Runs once (and again when seed, density... change). Return the scene's state.
+      // b is its extent [x0, y0, x1, y1, top], used to frame the view.
+      init: function (o, random) {
+        var racks = [];
+        var count = 3 + Math.round(o.density * 3);
+        for (var i = 0; i < count; i++) {
+          var speeds = [];
+          for (var u = 0; u < 8; u++) speeds.push(1 + random() * 4);
+          racks.push({ x: i * 11, y: 0, speeds: speeds });
+        }
+        return { b: [-6, -6, (count - 1) * 11 + 6, 6, 24], racks: racks, t: 0 };
+      },
+
+      // Runs every frame: describe the frame to the pen, it projects and paints back to front.
+      frame: function (x) {
+        var P = x.pen, st = x.st, o = x.o, k = Isoline.kit;
+        var on = x.ptr.on && o.interactive;
+        st.t += x.dt;
+
+        k.plinth(P, st.b);
+
+        // which rack the pointer is on, tested along its whole height (top or side)
+        var hit = -1, best = 5;
+        if (on) st.racks.forEach(function (r, i) {
+          var d = k.ptrDist(x, r.x, r.y, 22);
+          if (d < best) { best = d; hit = i; }
+        });
+
+        st.racks.forEach(function (r, i) {
+          var cls = i === hit ? "acc" : "";
+          // one group per object: its parts paint in the order drawn, and the group
+          // sorts against the others by its key (its place towards the eye)
+          P.begin(P.key(r.x, r.y, 0));
+          P.box(r.x, r.y, 0, 8, 8, 22, { r: 0.4, cls: cls });
+          for (var u = 0; u < 8; u++) {
+            var z = 2 + u * 2.5;
+            P.line([[r.x - 3.4, 4.02, z + 2.1], [r.x + 3.4, 4.02, z + 2.1]], { cls: "lo", layer: 1 });
+            var blink = Math.sin(st.t * r.speeds[u] + u) > 0.3;
+            P.light(r.x - 2.6, 4.05, z + 1, 0.32, { cls: blink ? "acc" : "m", layer: 1 });
+          }
+          P.end();
+        });
+
+        if (o.labels && hit >= 0) {
+          var name = (o.names && o.names[0]) || "Rack";
+          P.callout(st.racks[hit].x, st.racks[hit].y, 22, name + " " + (hit + 1), { cls: "acc", h: 3 });
+        }
+      },
+    });
+
+    new Isoline(document.getElementById("isoline"), {
+      scene: "racks",
+      azimuth: 35,
+      elevation: 30,
+      accent: "#ff6a3d",
+      floor: "grid",
+    });
+  </script>
+</body>
+</html>
