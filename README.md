@@ -34,7 +34,7 @@ This repo is the engine behind it: one vanilla JavaScript file, no dependency, 4
 ```html
 <div id="isoline" style="width:100%;aspect-ratio:16/10"></div>
 
-<script src="https://cdn.jsdelivr.net/gh/JuPicker/isoline@1.0.0/isoline.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/JuPicker/isoline@1.1.0/isoline.min.js"></script>
 <script>
   new Isoline(document.getElementById("isoline"), {
     scene: "keyboard",
