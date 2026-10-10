@@ -59,6 +59,7 @@ Everything is optional. Change any of them later with `instance.set({ ... })`.
 | `seed` | `7` | Layout of the scenes drawn at random. |
 | `density` | `0.5` | 0 to 1, read by each scene its own way: traffic, yard stacks, typing speed, one or two floors in `word`... |
 | `explode` | `0.5` | 0 to 1: how far `product`, `steamer`, `interface` and `word` open. |
+| `open` | `-1` | `-1`: layered scenes open under the pointer on their own. `0` to `1` holds them at that opening, to drive it from the scroll. `relief` pillars rise with it. |
 | `speed` | `1` | Animation speed. |
 | `azimuth` | `45` | Camera turn, -90 to 90 degrees. |
 | `elevation` | `30` | Camera tilt, 12 to 70 degrees. |
@@ -84,7 +85,7 @@ Everything is optional. Change any of them later with `instance.set({ ... })`.
 | `shape` | `[]` | `word`: letter outlines as rings of `[x, y]` points (y down), holes included. Empty draws "OK". Any scale works. |
 | `respectReducedMotion` | `true` | With reduced motion asked by the visitor, the scene holds a readable pose and only redraws on input. |
 
-Palettes that work: keep `plate`, `lo`, `mid`, `edge` and `hi` as five steps of one hue, from the background to the brightest line, and give `accent` its own colour.
+Palettes that work: keep `plate`, `lo`, `mid`, `edge` and `hi` as five steps of one hue, from the background to the brightest line, and give `accent` its own colour. Colours can be any hex (`#fff` or `#ffffff`) or `rgb()`.
 
 ```js
 // Blueprint
@@ -110,6 +111,17 @@ Isoline.labels("supply");          // ["Factory", "Warehouse", "Store"], the ord
 ```
 
 Pass `onFps: (fps) => {}` in the options to read the frame rate. Isoline pauses itself when it scrolls out of view.
+
+### Open on scroll
+
+```js
+// the layers part as the scene scrolls by (a GSAP ScrollTrigger works the same way)
+const iso = new Isoline(el, { scene: "interface", open: 0 });
+addEventListener("scroll", () => {
+  const r = el.getBoundingClientRect();
+  iso.set({ open: Math.min(1, Math.max(0, (innerHeight - r.top) / (innerHeight + r.height))) });
+}, { passive: true });
+```
 
 ## Make your own scene
 

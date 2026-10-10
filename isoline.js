@@ -28,6 +28,9 @@
     density: 0.5,
     // how far exploded views, the steamer, the interface and cut words open, 0 to 1
     explode: 0.5,
+    // -1: layered scenes breathe and open under the pointer on their own; 0 to 1 holds them
+    // at that opening instead (drive it from the page's scroll). Relief pillars rise with it.
+    open: -1,
     // accents as solid fills (shaded sides, full top); false draws them as lines
     solidAccent: true,
     // a floor under the scene that fades out towards the edges: none | grid | dots
@@ -2103,7 +2106,7 @@
       var st = x.st, P = x.pen, o = x.o, L = st.L, C = P.C, sk = st.sk, on = x.ptr.on && o.interactive;
       st.c += x.dt;
       var auto = ss(0.18, 0.82, 0.5 - 0.5 * Math.cos(st.c * 0.55));
-      var e = x.ease("e", on ? 1 : auto, on ? 3 : 1.6);
+      var held = o.open >= 0, e = x.ease("e", held ? clamp(+o.open, 0, 1) : on ? 1 : auto, held ? 12 : on ? 3 : 1.6);
       var zs = [], zs1 = [], z = 0;
       L.forEach(function (l, i) { zs.push(z + e * st.gap * i); zs1.push(z + st.gap * i); z += l.h; });
       var top = zs[zs.length - 1] + L[L.length - 1].h;
@@ -2138,7 +2141,7 @@
     frame: function (x) {
       var st = x.st, P = x.pen, o = x.o, on = x.ptr.on && o.interactive, k;
       st.c += x.dt;
-      var D = st.D * (0.8 + 0.2 * Math.sin(st.c * 0.8));
+      var D = o.open >= 0 ? st.D * x.ease("open", 0.12 + 0.88 * clamp(+o.open, 0, 1), 12) : st.D * (0.8 + 0.2 * Math.sin(st.c * 0.8));
       P.seq(0);
       P.box(0, 0, 0, 100, 68, 1.6, { r: 4 });
       [0, 1, 2].forEach(function (i) { P.dot(-45 + i * 3.4, -30, 1.65, 0.9, { cls: i === 0 ? "acc" : "m", layer: 1 }); });
@@ -3332,7 +3335,7 @@
       var st = x.st, P = x.pen, o = x.o, C = P.C, on = x.ptr.on && o.interactive, Wd = WORD;
       st.c += x.dt;
       var auto = 0.1 + 0.4 * ss(0.15, 0.85, 0.5 - 0.5 * Math.cos(st.c * 0.5));
-      var e = x.ease("e", on ? 1 : auto, on ? 3 : 1.4);
+      var held = o.open >= 0, e = x.ease("e", held ? clamp(+o.open, 0, 1) : on ? 1 : auto, held ? 12 : on ? 3 : 1.4);
       // the letter at hand: walk down the pointer's line of sight from above the roofs;
       // the first letter it enters is the one in view (higher along the ray is nearer the eye)
       var hit = null;
@@ -3522,7 +3525,8 @@
       var hiCell = null, bd = st.CELL * 0.7, hs = [], lit = [];
       st.cells.forEach(function (c, n) {
         if (!c.lvl) return;
-        var t = c.h0 + 3 * (0.5 + 0.5 * Math.sin(st.c * 1.6 - (c.i + c.j) * 0.35)) * (x.reduced ? 0 : 1);
+        var rise = o.open >= 0 ? clamp(+o.open, 0, 1) : 1;
+        var t = c.h0 * rise + 3 * rise * (0.5 + 0.5 * Math.sin(st.c * 1.6 - (c.i + c.j) * 0.35)) * (x.reduced ? 0 : 1);
         if (on) {
           var d = ptrDist(x, c.cx, c.cy, c.hc || c.h0);
           var up = 24 * falloff(d / 36);
@@ -3587,7 +3591,10 @@
     var defs = mk("defs", {}, this.svg);
     this.fgrad = mk("radialGradient", { id: this.fid, gradientUnits: "userSpaceOnUse" }, defs);
     this.fstops = FADE.map(function (f) { return mk("stop", { offset: f[0], style: "stop-color:var(--il-floor)" }, this.fgrad); }, this);
-    this.flp = mk("path", { class: "gd" }, this.svg);
+    // the floor runs wide: it is cut to the view box, so it never spills over the page around the scene
+    var clip = mk("clipPath", { id: this.fid + "-clip" }, defs);
+    this.fclip = mk("rect", {}, clip);
+    this.flp = mk("path", { class: "gd", "clip-path": "url(#" + this.fid + "-clip)" }, this.svg);
     this.g = mk("g", {}, this.svg);
     this.tg = mk("g", {}, this.svg);
     this._rm = global.matchMedia ? global.matchMedia("(prefers-reduced-motion: reduce)") : null;
@@ -3711,6 +3718,7 @@
     var px = (bb - a) * 0.05, py = (d - c) * 0.05, extra = this.st.cols && o.labels ? (bb - a) * 0.55 : 0;
     this.vb = [a - px, c - py, bb - a + px * 2 + extra, d - c + py * 2];
     this.svg.setAttribute("viewBox", this.vb.map(r2).join(" "));
+    ["x", "y", "width", "height"].forEach(function (k, i) { this.fclip.setAttribute(k, r2(this.vb[i])); }, this);
     // labels keep one size on screen, whatever the scene's extent
     this.fs = r2(Math.max(this.vb[2], this.vb[3] * 1.25) * 0.0125);
     this.tg.setAttribute("font-size", this.fs);

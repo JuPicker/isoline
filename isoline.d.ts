@@ -33,6 +33,8 @@ export interface IsoOptions {
   density: number;
   /** 0 to 1: how far exploded views, the steamer, the interface and cut words open. */
   explode: number;
+  /** -1: layered scenes breathe and open under the pointer on their own. 0 to 1 holds them at that opening (drive it from the scroll); relief pillars rise with it. */
+  open: number;
   speed: number;
 
   /** Camera turn, -90 to 90 degrees. */
